@@ -1,0 +1,8 @@
+date,amount,description,category
+2026-10-02,120,Lunch,Food
+2026-10-05,70,Bus pass,Travel
+2026-09-11,250,Books,Study
+2026-10-12,95,Groceries,Food
+,40,Missing date test,Food
+2026-10-10,wrong,Invalid amount test,Study
+2026-10-11,55,,Other
