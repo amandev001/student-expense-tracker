@@ -254,6 +254,28 @@
   line-height: 1.6;
   margin: -6px 0 18px;
 }
+.studentPasswordRequirements {
+  list-style: none;
+  padding: 0;
+  margin: -4px 0 22px;
+  display: grid;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #758098;
+}
+.studentPasswordRequirements li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.studentPasswordRequirements svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.studentPasswordRequirements .met {
+  color: #238356;
+}
 .studentAuthNotice {
   display: flex;
   gap: 9px;

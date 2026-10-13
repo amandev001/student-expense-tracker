@@ -4,7 +4,7 @@
   <img src="client/public/pluscode-logo.jpeg" alt="Pluscode logo" width="96" height="96" />
 </p>
 
-A responsive expense tracker built with **React, Vite, and Supabase**. Students register with an email verification code, record expenses, set category budgets, view spending insights, and import/export CSV data. A separate administrator panel lists users and lets administrators update monthly category budgets.
+A responsive expense tracker built with **React, Vite, and Supabase**. Students register directly with an email and password, record expenses, set category budgets, view spending insights, and import/export CSV data. A separate administrator panel lists users and lets administrators update monthly category budgets.
 
 This guide covers a fresh local installation on **Windows, macOS, or Linux**, including database setup, email delivery, administrator provisioning, and evaluation checks.
 
@@ -18,7 +18,7 @@ This guide covers a fresh local installation on **Windows, macOS, or Linux**, in
 4. [Quick demo without Supabase](#4-quick-demo-without-supabase)
 5. [Create the Supabase database](#5-create-the-supabase-database)
 6. [Configure the environment file](#6-configure-the-environment-file)
-7. [Configure six-digit verification emails](#7-configure-six-digit-verification-emails)
+7. [Configure password registration](#7-configure-password-registration)
 8. [Set up the administrator panel](#8-set-up-the-administrator-panel)
 9. [Start, stop, and restart the application](#9-start-stop-and-restart-the-application)
 10. [Use the application](#10-use-the-application)
@@ -33,7 +33,7 @@ This guide covers a fresh local installation on **Windows, macOS, or Linux**, in
 
 ### Main features
 
-- Email → six-digit verification code → password setup → email/password sign-in.
+- Valid email + password → create account → email/password sign-in, without email verification.
 - Student dashboard with spending totals, transactions, charts, category alerts, and a guided tour.
 - Expenses categorized as **Food, Travel, Study, or Other**.
 - Category budget limits, reporting periods, transaction search, and category filtering.
@@ -65,8 +65,7 @@ The browser communicates directly with Supabase. **Only the frontend development
 | Browser          | A current Chrome, Edge, Firefox, Safari, or Brave browser                                   |
 | Internet         | Required for package installation and real Supabase authentication/database access          |
 | Supabase account | Required for real registration, persistent data, and the admin panel                        |
-| Email inbox      | An inbox you control to receive the verification code                                       |
-| Custom SMTP      | Required for Pluscode-branded verification email delivery to ordinary users                 |
+| Email address    | A valid email format; no inbox access or verification code is required                      |
 | Git              | Optional; needed only if cloning instead of extracting the submitted ZIP                    |
 
 Install Node.js from the [official Node.js download page](https://nodejs.org/en/download), then reopen your terminal. Check:
@@ -137,7 +136,7 @@ No account, verification email, or environment file is required for demo mode. A
 
 ## 5. Create the Supabase database
 
-If the owner supplies an already configured **evaluation** project, confirm its schema and email/admin setup are complete, then use its supplied frontend URL/key. Otherwise:
+If the owner supplies an already configured **evaluation** project, confirm its schema and password/admin setup are complete, then use its supplied frontend URL/key. Otherwise:
 
 1. Sign in at the [Supabase dashboard](https://supabase.com/dashboard).
 2. Create a new project and wait until it is ready. Keep its database password securely; it does **not** belong in `client/.env`.
@@ -186,53 +185,31 @@ VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_PUBLISHABLE_OR_ANON_KEY
 
 The environment file is intentionally ignored by Git. A fresh checkout creates it separately. The publishable/anon key is intended for frontend use; database access is controlled by RLS.
 
-## 7. Configure six-digit verification emails
+## 7. Configure password registration
 
-Required for **real account creation**. Starting Vite or editing the local HTML template does not configure hosted Supabase email settings.
+### Required Supabase settings
 
-### 7.1 Enable email registration and confirmation
+Under **Authentication → Sign In / Providers → Email**:
 
-In Supabase **Authentication**, open the email provider settings, usually under **Sign In / Providers → Email**:
+1. Enable the **Email** provider and allow new user sign-ups.
+2. Set **Confirm email OFF**, then save. This allows registration without an email code or link.
+3. Set a minimum password length of **8** or more. Preserve any stricter existing password policy.
 
-1. Enable **Email** and allow new user sign-ups.
-2. Turn **Confirm email ON**.
-3. Set email OTP length to **6 digits**; locate it under email authentication settings if shown separately.
-4. Keep an appropriate OTP expiry. Use a newly requested code before it expires.
+**No SMTP or email-template setup is needed for registration.** The app uses Supabase email/password signup and then returns to sign-in. Email validation checks address format; it does not prove that the user owns the inbox. See [Supabase password authentication](https://supabase.com/docs/guides/auth/passwords).
 
-### 7.2 Apply both email templates
+New student passwords must contain:
 
-Open **Authentication → Email Templates**:
+- At least **8 characters**.
+- At least **1 capital letter** (A–Z).
+- At least **1 special character**, such as @, #, or !. Spaces do not count as special characters.
+- At least **3 digits** (0–9). They can appear anywhere; more than three is also allowed.
+- No more than **72 UTF-8 bytes**.
 
-| Template       | Subject                      | Body                                                            |
-| -------------- | ---------------------------- | --------------------------------------------------------------- |
-| Confirm signup | `Pluscode verification code` | Entire contents of `supabase/templates/email-verification.html` |
-| Magic Link     | `Pluscode verification code` | Entire contents of the same file                                |
+These rules are checked in the registration form before sending signup to Supabase. The form displays which requirements are met. Supabase can enforce a stricter server password policy; a stronger project policy may require a longer password. Existing users continue to sign in with their chosen password.
 
-Copy the body from [email-verification.html](supabase/templates/email-verification.html) and **save both hosted templates**. Preserve `{{ .Token }}`: Supabase replaces it with the verification code. The supplied template displays a code without a login link. Configure both because new and existing/incomplete accounts can use different templates.
+### Optional configuration script
 
-Supabase's `signInWithOtp` sends a magic link by default unless the template displays the token; see the [official email OTP guide](https://supabase.com/docs/guides/auth/auth-email-passwordless).
-
-### 7.3 Configure delivery and the Pluscode sender
-
-Supabase's built-in email service restricts delivery to authorized project-team addresses. For an examiner's or another user's ordinary email address, configure **custom SMTP**. See [Supabase's SMTP documentation](https://supabase.com/docs/guides/auth/auth-smtp).
-
-1. Obtain SMTP details from an email provider and complete its required sender/domain verification.
-2. Open Supabase **Authentication → SMTP Settings** and enable custom SMTP.
-3. Enter the provider's SMTP host, port, username, and password.
-4. Use the provider's verified sender address and set **Sender name** to **Pluscode**.
-5. Save and request a code from the app to test actual delivery.
-
-SMTP credentials stay in Supabase settings. A sender name alone does not configure delivery. Check Inbox and Spam/Junk, and avoid repeated requests because Supabase/provider rate limits apply.
-
-### 7.4 Configure the local site URL
-
-Under **Authentication → URL Configuration**, set Site URL to the actual frontend origin, for example `http://127.0.0.1:5173`. If using redirects, allow the matching local redirect URL, for example `http://127.0.0.1:5173/**`. Update these for port `5174` or preview port `4173`.
-
-Current signup uses a typed code, but matching URL settings are useful for other Supabase auth emails. `localhost` and `127.0.0.1` are different origins; use the same address consistently.
-
-### 7.5 Optional: Configure templates using the provided script
-
-The dashboard method is sufficient. Alternatively, the owner can create a **personal management access token** in [Supabase account settings](https://supabase.com/dashboard/account/tokens) and run the script. An anon/publishable key cannot update auth settings.
+The dashboard method above is sufficient. If the owner has a **Supabase management access token**, the included script can turn confirmation off and set the server minimum length to at least eight without lowering a stronger length or changing SMTP settings. The browser anon/publishable key cannot change auth settings.
 
 Windows PowerShell:
 
@@ -250,15 +227,7 @@ npm run auth:configure
 unset SUPABASE_ACCESS_TOKEN
 ```
 
-The script derives the project reference from `client/.env`; `SUPABASE_PROJECT_REF` can override it. It enables confirmation, sets six-digit OTPs, updates both templates/subjects and sender name, then reads settings back. **It does not provision SMTP or send a test email.** Existing SMTP host, credentials, and sender address are preserved.
-
-| Exit code | Meaning                                                                           |
-| --------- | --------------------------------------------------------------------------------- |
-| `0`       | Settings verified and SMTP host/sender address present; still test delivery       |
-| `2`       | Templates/settings applied, but custom SMTP still needs configuration             |
-| `1`       | Configuration failed; read the terminal message for token, project, or API errors |
-
-Keep management tokens out of source files and `VITE_` variables.
+The script reads the project reference from client/.env or SUPABASE_PROJECT_REF, applies settings, and reads them back. Exit code 0 means the requested settings were verified; exit code 1 means configuration failed. Keep management tokens out of source files and VITE_ variables.
 
 ## 8. Set up the administrator panel
 
@@ -341,12 +310,12 @@ Then use `http://127.0.0.1:5174/` and `http://127.0.0.1:5174/#admin`.
 
 ### Create a student account
 
-1. Select **Create account** and enter an inbox you control.
-2. Request verification and enter the **latest six-digit code** from the email.
-3. After verification, choose a password, confirm it, and optionally enter your name.
-4. Complete registration, then sign in with that **same email and chosen password**.
+1. Select **Create account** and enter an email address in a valid format.
+2. Choose a password that meets the displayed rules: at least eight characters, one capital letter, one special character, and three digits.
+3. Click **Register**. The application returns to **Sign in** with your email filled in.
+4. Sign in with that **same email and chosen password**.
 
-Email becomes the student's username. The password form appears **after successful verification**. Passwords need at least eight characters and must fit the 72-byte limit; stricter Supabase password policies also apply. Existing completed accounts retain their password. Reloading during registration may require a new code.
+Your email becomes your username. No verification code, email link, full-name field, or confirmation-password step is required. Passwords are not stored in browser storage. If you repeat registration after an account was created, the app verifies the supplied password and directs you to sign-in. A different password does not overwrite an existing account. Changing the email clears messages from the previous address. If an older interrupted signup reserved your email, contact the project administrator to restore that account rather than deleting existing records.
 
 ### Record and review expenses
 
@@ -385,22 +354,23 @@ Use the transaction CSV export control to download the displayed data. Your brow
 
 Use fresh accounts and let the initial dashboard finish loading before adding data. Do not switch browsers or clear storage during this sequence because of the first-login reset.
 
-| Check            | Steps                                                       | Expected result                                               |
-| ---------------- | ----------------------------------------------------------- | ------------------------------------------------------------- |
-| Local launch     | Install dependencies and start Vite                         | Authentication page opens at the Local URL                    |
-| Demo             | Sign in tab → Try demo                                      | Dashboard works without a real account                        |
-| Registration     | Email → code → password → sign in                           | Code-only email arrives; password is requested; account opens |
-| Expense          | Add a Food expense dated today                              | Transaction, count, and total update                          |
-| Month filtering  | View another month with no entries                          | First month's entries do not appear                           |
-| Warning          | Current Monthly view: Food limit ₹1,000, Food spending ₹800 | 80% warning appears                                           |
-| Over budget      | Add ₹201 more Food spending in the same month               | ₹1,001 shows over-budget alert                                |
-| CSV validation   | Import valid and invalid rows                               | Valid rows import; invalid rows show explanations             |
-| Duplicates       | Import that same file again                                 | Matching imported rows are skipped                            |
-| Data isolation   | Sign in as a second student                                 | First student's records are not visible                       |
-| Admin search     | Admin login → search student email                          | Matching user appears                                         |
-| Admin update     | Revise monthly limit; refresh student's view                | Updated category limit appears                                |
-| Responsive UI    | Test phone/tablet/desktop sizes                             | Navigation, forms, tables, and dialogs remain usable          |
-| Automated checks | Run tests, formatting check, and build                      | Commands finish without failures                              |
+| Check               | Steps                                                       | Expected result                                      |
+| ------------------- | ----------------------------------------------------------- | ---------------------------------------------------- |
+| Local launch        | Install dependencies and start Vite                         | Authentication page opens at the Local URL           |
+| Demo                | Sign in tab → Try demo                                      | Dashboard works without a real account               |
+| Registration        | Email + qualifying password → Register → sign in            | Account created without an email code or link        |
+| Password validation | Try a password missing a capital, symbol, or three digits   | Missing requirements shown; registration rejected    |
+| Expense             | Add a Food expense dated today                              | Transaction, count, and total update                 |
+| Month filtering     | View another month with no entries                          | First month's entries do not appear                  |
+| Warning             | Current Monthly view: Food limit ₹1,000, Food spending ₹800 | 80% warning appears                                  |
+| Over budget         | Add ₹201 more Food spending in the same month               | ₹1,001 shows over-budget alert                       |
+| CSV validation      | Import valid and invalid rows                               | Valid rows import; invalid rows show explanations    |
+| Duplicates          | Import that same file again                                 | Matching imported rows are skipped                   |
+| Data isolation      | Sign in as a second student                                 | First student's records are not visible              |
+| Admin search        | Admin login → search student email                          | Matching user appears                                |
+| Admin update        | Revise monthly limit; refresh student's view                | Updated category limit appears                       |
+| Responsive UI       | Test phone/tablet/desktop sizes                             | Navigation, forms, tables, and dialogs remain usable |
+| Automated checks    | Run tests, formatting check, and build                      | Commands finish without failures                     |
 
 For the budget example, start with an empty Food total; existing sample/test expenses change the percentage.
 
@@ -408,18 +378,18 @@ For the budget example, start with an empty Food total; existing sample/test exp
 
 ### Command reference
 
-| Command from project root                                         | Purpose                                                        |
-| ----------------------------------------------------------------- | -------------------------------------------------------------- |
-| `npm run install:all`                                             | Install root and client dependencies                           |
-| `npm run dev`                                                     | Start frontend on port 5173                                    |
-| `npm run dev --prefix client -- --port 5174`                      | Start on another port                                          |
-| `npm test`                                                        | Run automated logic/auth/database tests                        |
-| `npm run build`                                                   | Create production frontend in `client/dist/`                   |
-| `npm run preview --prefix client -- --host 127.0.0.1 --port 4173` | Serve the production build locally                             |
-| `npm run format`                                                  | Format supported source files                                  |
-| `npm run format:check`                                            | Check formatting without changes                               |
-| `npm run auth:configure`                                          | Update hosted email settings using a management token          |
-| `npm run test:responsive`                                         | Run isolated browser layout checks; needs a running dev server |
+| Command from project root                                         | Purpose                                                          |
+| ----------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `npm run install:all`                                             | Install root and client dependencies                             |
+| `npm run dev`                                                     | Start frontend on port 5173                                      |
+| `npm run dev --prefix client -- --port 5174`                      | Start on another port                                            |
+| `npm test`                                                        | Run automated logic/auth/database tests                          |
+| `npm run build`                                                   | Create production frontend in `client/dist/`                     |
+| `npm run preview --prefix client -- --host 127.0.0.1 --port 4173` | Serve the production build locally                               |
+| `npm run format`                                                  | Format supported source files                                    |
+| `npm run format:check`                                            | Check formatting without changes                                 |
+| `npm run auth:configure`                                          | Disable email confirmation and configure minimum password length |
+| `npm run test:responsive`                                         | Run isolated browser layout checks; needs a running dev server   |
 
 ### Standard verification
 
@@ -429,7 +399,7 @@ npm run format:check
 npm run build
 ```
 
-Tests cover expense/CSV validation, budget statuses, email registration/settings, and admin authentication, permissions, search/pagination, budget updates, lockout, and logout. Database tests use embedded **PGlite**, not live Supabase data. They do not prove SMTP delivery; test that separately in the app.
+Tests cover expense/CSV validation, budget statuses, email/password registration, password rules, and auth settings, and admin authentication, permissions, search/pagination, budget updates, lockout, and logout. Database tests use embedded **PGlite**, not live Supabase data. Use the manual registration/sign-in check to verify your live Supabase configuration.
 
 ### Preview the production build
 
@@ -469,7 +439,7 @@ macOS / Linux:
 RESPONSIVE_TEST_URL='http://127.0.0.1:5173/' npm run test:responsive
 ```
 
-The script defaults to **5174**, so override it for 5173. Set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to a full browser executable path for custom installations. Reports/screenshots go into ignored `layout-artifacts/`. Checks cover 14 states across eight viewport configurations, including 320px phones and short landscape.
+The script defaults to **5174**, so override it for 5173. Set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to a full browser executable path for custom installations. Reports/screenshots go into ignored `layout-artifacts/`. Checks cover 14 states across eight viewport configurations, including 320px phones, password validation states, and short landscape.
 
 ### Editor formatting
 
@@ -498,8 +468,7 @@ student-expense-tracker/
 │       ├── App.jsx                   # Student workspace, expenses, budgets
 │       ├── Logo.jsx                  # Shared project branding
 │       ├── StudentAuth.jsx           # Registration and sign-in
-│       ├── email-registration.js     # OTP verification and password setup
-│       ├── student-session.js        # Registration/session checks
+│       ├── student-auth.js           # Email/password validation and authentication
 │       ├── api.js                    # Student Supabase access / validation
 │       ├── AdminPanel.jsx            # Administrator UI
 │       ├── admin-api.js              # Administrator RPC access
@@ -507,11 +476,10 @@ student-expense-tracker/
 │       └── *.css                     # Student, admin, responsive styles
 ├── supabase/
 │   ├── schema.sql                    # Base tables, indexes, student RLS
-│   ├── admin-schema.sql              # Admin storage and RPC functions
-│   └── templates/email-verification.html
+│   └── admin-schema.sql              # Admin storage and RPC functions
 ├── sample-data/expenses-sample.csv    # CSV evaluation fixture
 ├── scripts/
-│   ├── configure-email-auth.mjs      # Hosted email settings script
+│   ├── configure-password-auth.mjs   # Password registration settings script
 │   └── check-responsive.mjs          # Isolated browser layout checks
 └── tests/                            # Node.js / embedded database tests
 ```
@@ -523,59 +491,56 @@ student-expense-tracker/
 - **First-login reset:** `App.jsx` clears origin-local storage on first initialization and signs out any existing student session. On first signed-in use of an email without its local reset marker, it deletes that student's expenses across all months and clears the selected month's budgets. This is browser-dependent, not a database migration. Use disposable evaluation data; do not connect valuable existing records to this version.
 - **Budget persistence:** There is one budget per **user + calendar month + category**. Weekly, half-month, quarterly, and yearly selections filter expenses but do not store independent budgets for each cycle. Use Monthly for a consistent persisted-budget demonstration.
 - **Cycle locking:** Active-cycle state is stored in browser storage and cleared on logout. Student restrictions are UI logic, not a database-wide once-per-cycle policy. Admins can update monthly limits directly.
-- **Internet:** Real auth/data are hosted on Supabase. Demo data is temporary and cannot demonstrate real SMTP, RLS, or administrator access.
-- **Separate credentials:** Frontend settings and admin credentials are not bundled. SQL does not configure email delivery. Existing MySQL data is not automatically migrated.
-- **Incomplete registration:** Requesting a code can create an incomplete Auth user. Finish verification and password setup before student login; restarting registration can resume an incomplete account.
+- **Internet:** Real auth/data are hosted on Supabase. Demo data is temporary and cannot demonstrate real authentication, RLS, or administrator access.
+- **Separate credentials:** Frontend settings and admin credentials are not bundled. Confirm email must be OFF for immediate email/password registration. Existing MySQL data is not automatically migrated.
+- **Older interrupted accounts:** Previous unfinished signups may already occupy an email. Completed accounts keep their password; unfinished legacy sessions remain blocked. The project administrator must restore those accounts if their password was never set. New registrations use the email/password flow.
 
 ## 15. Troubleshooting
 
-| Problem                                      | What to check / do                                                                                           |
-| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `node` / `npm` not recognized                | Install Node.js 24 LTS, reopen terminal, and check versions                                                  |
-| `npm.ps1 cannot be loaded`                   | Use `npm.cmd` instead of `npm`, or Command Prompt                                                            |
-| `ENOENT` / package.json not found            | Open the project root, not its parent or `supabase/`                                                         |
-| Engine warning or install failure            | Upgrade to Node.js 24 LTS; installed Supabase package requires Node.js 22+                                   |
-| `vite` not recognized / missing dependencies | Run `npm run install:all` from root and wait for completion                                                  |
-| Port `5173` already in use                   | Use the `--port 5174` command and open that port                                                             |
-| Cannot reach local URL                       | Keep Vite running; open exactly its terminal's Local URL                                                     |
-| Missing Supabase settings                    | Create `client/.env`, fill values, check it is not `.env.txt`, restart Vite                                  |
-| Invalid API key / failed request             | Check URL/key belong to the same active project and internet works                                           |
-| Missing expenses/budgets relation            | Run all of `supabase/schema.sql` in the configured project                                                   |
-| RLS / permission errors                      | Verify schema/policies and session; keep RLS enabled; never use browser service-role keys                    |
-| No verification email                        | Check SMTP credentials, verified sender, Spam, Auth logs, and rate limits; default mail restricts recipients |
-| Login link / “Your Magic Link” email         | Save code template and subject in **both** hosted templates; editing local HTML is insufficient              |
-| Sender says Supabase Auth                    | Configure custom SMTP, verified sender address, and Sender name `Pluscode`                                   |
-| Wrong OTP length                             | Set email OTP length to six and request a new code                                                           |
-| Invalid / expired OTP                        | Use latest code for same email; wait for resend timer before a new request                                   |
-| Password form missing                        | Verify the code first; ensure Confirm email is ON and verification succeeds                                  |
-| Email/password login fails                   | Complete registration; use verified email and chosen password; check Auth logs                               |
-| Admin setup pending / RPC missing            | Run base schema then all of `admin-schema.sql` in the same project as `.env`                                 |
-| Admin credentials rejected                   | Provision an admin account; student credentials do not grant admin access                                    |
-| Duplicate admin username                     | Account already exists; use known credentials or another new username                                        |
-| `crypt` / `gen_salt` missing                 | Run schemas first; use the schema-detecting creation block in this guide                                     |
-| Admin account locked                         | Wait 15 minutes after repeated failures and use correct credentials                                          |
-| Admin users empty                            | Complete real registration in the same project; demo users are not stored                                    |
-| Expense not displayed                        | Check month/cycle/search/category filters; entry may be outside the view                                     |
-| Budget input locked                          | Select a current started period; saved categories lock during that period; admins can revise monthly limits  |
-| CSV / rows rejected                          | Check four headers, size, non-future real dates, amounts, descriptions, and categories                       |
-| Existing data disappears on new browser      | Read first-login reset note; this behavior exists in the current code                                        |
-| Responsive test cannot connect               | Run Vite and set `RESPONSIVE_TEST_URL` to its actual port                                                    |
-| Playwright executable missing                | Install Chromium or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE`                                                     |
-| Preview has old settings                     | Rebuild after environment/source changes, then restart preview                                               |
+| Problem                                      | What to check / do                                                                                          |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `node` / `npm` not recognized                | Install Node.js 24 LTS, reopen terminal, and check versions                                                 |
+| `npm.ps1 cannot be loaded`                   | Use `npm.cmd` instead of `npm`, or Command Prompt                                                           |
+| `ENOENT` / package.json not found            | Open the project root, not its parent or `supabase/`                                                        |
+| Engine warning or install failure            | Upgrade to Node.js 24 LTS; installed Supabase package requires Node.js 22+                                  |
+| `vite` not recognized / missing dependencies | Run `npm run install:all` from root and wait for completion                                                 |
+| Port `5173` already in use                   | Use the `--port 5174` command and open that port                                                            |
+| Cannot reach local URL                       | Keep Vite running; open exactly its terminal's Local URL                                                    |
+| Missing Supabase settings                    | Create `client/.env`, fill values, check it is not `.env.txt`, restart Vite                                 |
+| Invalid API key / failed request             | Check URL/key belong to the same active project and internet works                                          |
+| Missing expenses/budgets relation            | Run all of `supabase/schema.sql` in the configured project                                                  |
+| RLS / permission errors                      | Verify schema/policies and session; keep RLS enabled; never use browser service-role keys                   |
+| Email/password login fails                   | Use registered email and chosen password; check Auth logs                                                   |
+| Registration asks for confirmation           | Set Supabase Confirm email OFF; no code is used in this version                                             |
+| Password rejected                            | Meet all four displayed rules and any stricter Supabase policy                                              |
+| Earlier email already registered             | Sign in with its existing password; unfinished old accounts need administrator restoration                  |
+| Admin setup pending / RPC missing            | Run base schema then all of `admin-schema.sql` in the same project as `.env`                                |
+| Admin credentials rejected                   | Provision an admin account; student credentials do not grant admin access                                   |
+| Duplicate admin username                     | Account already exists; use known credentials or another new username                                       |
+| `crypt` / `gen_salt` missing                 | Run schemas first; use the schema-detecting creation block in this guide                                    |
+| Admin account locked                         | Wait 15 minutes after repeated failures and use correct credentials                                         |
+| Admin users empty                            | Complete real registration in the same project; demo users are not stored                                   |
+| Expense not displayed                        | Check month/cycle/search/category filters; entry may be outside the view                                    |
+| Budget input locked                          | Select a current started period; saved categories lock during that period; admins can revise monthly limits |
+| CSV / rows rejected                          | Check four headers, size, non-future real dates, amounts, descriptions, and categories                      |
+| Existing data disappears on new browser      | Read first-login reset note; this behavior exists in the current code                                       |
+| Responsive test cannot connect               | Run Vite and set `RESPONSIVE_TEST_URL` to its actual port                                                   |
+| Playwright executable missing                | Install Chromium or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE`                                                    |
+| Preview has old settings                     | Rebuild after environment/source changes, then restart preview                                              |
 
-For database/email errors, inspect browser console/network responses and Supabase logs. Do not include passwords or management tokens in shared screenshots or error reports.
+For database/authentication errors, inspect browser console/network responses and Supabase logs. Do not include passwords or management tokens in shared screenshots or error reports.
 
 ## 16. Submission checklist
 
 Before handing the project to the examiner:
 
-- [ ] Include **latest** source, README, both package manifests/lockfiles, both schemas, email template, scripts, tests, and sample CSV.
+- [ ] Include **latest** source, README, both package manifests/lockfiles, both schemas, scripts, tests, and sample CSV.
 - [ ] Grant private repository access or supply a complete source ZIP.
 - [ ] Verify installation from the actual submission folder, not an older copy.
 - [ ] Provide a fresh evaluation Supabase project or allow time to create one using this guide.
 - [ ] Apply database and administrator schemas if admin features will be evaluated.
-- [ ] Enable email confirmation, six-digit codes, both templates, and working custom SMTP.
-- [ ] Test real email → OTP → password → sign-in with the intended email delivery setup.
+- [ ] Enable email/password registration and save **Confirm email OFF** in Supabase.
+- [ ] Test valid email + qualifying password → Register → sign in; test rejection of weak passwords.
 - [ ] Share evaluation project URL/publishable key and existing admin credentials privately, or let the examiner create their own admin.
 - [ ] Run `npm test`, `npm run format:check`, and `npm run build`; complete manual evaluation checks.
 - [ ] Explain first-login reset and use disposable test records.

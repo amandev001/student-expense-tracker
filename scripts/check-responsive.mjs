@@ -20,6 +20,7 @@ const browser = await chromium.launch({
 const context = await browser.newContext({ reducedMotion: 'reduce' });
 const page = await context.newPage();
 const errors = [];
+let signupRequests = 0;
 page.on('pageerror', (error) => errors.push(error.message));
 const now = new Date(),
   date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -33,7 +34,7 @@ let user = {
   email_confirmed_at: now.toISOString(),
   created_at: now.toISOString(),
   app_metadata: { provider: 'email', providers: ['email'] },
-  user_metadata: { signup_method: 'email_otp', registration_complete: false },
+  user_metadata: { signup_method: 'email_password', registration_complete: true },
 };
 const encode = (value) => Buffer.from(JSON.stringify(value)).toString('base64url');
 const token = () =>
@@ -78,10 +79,31 @@ await context.route(/https:\/\/[^/]+\.supabase\.co\//, async (route) => {
     address = new URL(request.url()),
     body = request.postDataJSON?.() || {};
   let result = {};
-  if (address.pathname.endsWith('/otp')) result = {};
-  else if (address.pathname.endsWith('/verify')) result = session();
-  else if (address.pathname.endsWith('/token')) result = session();
-  else if (address.pathname.endsWith('/user')) {
+  if (address.pathname.endsWith('/signup')) {
+    signupRequests++;
+    if (body.email === 'already-registered@example.test') {
+      await route.fulfill({
+        status: 422,
+        contentType: 'application/json',
+        body: JSON.stringify({ error_code: 'user_already_exists', msg: 'User already registered' }),
+      });
+      return;
+    }
+    result = { ...session(), ...user };
+  } else if (address.pathname.endsWith('/token')) {
+    if (body.email === 'already-registered@example.test') {
+      await route.fulfill({
+        status: 400,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          error_code: 'invalid_credentials',
+          msg: 'Invalid login credentials',
+        }),
+      });
+      return;
+    }
+    result = session();
+  } else if (address.pathname.endsWith('/user')) {
     if (request.method() === 'PUT')
       user = { ...user, user_metadata: { ...user.user_metadata, ...body.data } };
     result = user;
@@ -191,19 +213,34 @@ async function screen(name) {
 try {
   await page.goto(url, { waitUntil: 'networkidle' });
   await page.getByRole('button', { name: 'Create account', exact: true }).click();
-  await check('registration-email');
+  await check('registration-form');
   await page.getByLabel('Email address', { exact: true }).fill(email);
-  await page.getByRole('button', { name: 'Send verification code', exact: true }).click();
-  await page.getByLabel('6-digit verification code', { exact: true }).waitFor();
-  await check('registration-code');
-  await page.getByLabel('6-digit verification code', { exact: true }).fill('123456');
-  await page.getByRole('button', { name: 'Verify email', exact: true }).click();
-  await page.getByLabel('Confirm password', { exact: true }).waitFor();
-  await check('registration-password');
+  await page.getByLabel('Password', { exact: true }).fill('weakpass');
+  await page.getByRole('button', { name: 'Register', exact: true }).click();
+  await page.getByRole('alert').filter({ hasText: 'Password needs' }).waitFor();
+  await check('registration-invalid-password');
   await page.getByLabel('Password', { exact: true }).fill('LayoutPassword#123');
-  await page.getByLabel('Confirm password', { exact: true }).fill('LayoutPassword#123');
-  await page.getByRole('button', { name: 'Complete registration', exact: true }).click();
+  await page.getByLabel('Email address', { exact: true }).fill('already-registered@example.test');
+  await page.getByRole('button', { name: 'Register', exact: true }).click();
+  await page.getByRole('alert').filter({ hasText: 'already has an account' }).waitFor();
+  await page.getByLabel('Email address', { exact: true }).fill(email);
+  assert.equal(
+    await page.getByRole('alert').count(),
+    0,
+    'Previous email error should clear when email changes',
+  );
+  await check('registration-valid-password');
+  const signupRequestsBefore = signupRequests;
+  await page.locator('form').evaluate((form) => {
+    form.requestSubmit();
+    form.requestSubmit();
+  });
   await page.getByLabel('Email / username', { exact: true }).waitFor();
+  assert.equal(
+    signupRequests - signupRequestsBefore,
+    1,
+    'Rapid form submissions must create only one signup request',
+  );
   await check('student-login');
   await page.getByRole('button', { name: 'Try demo', exact: true }).click();
   await page.getByRole('button', { name: 'Close tour', exact: true }).click();

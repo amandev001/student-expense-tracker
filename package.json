@@ -7,7 +7,7 @@
     "dev": "npm run dev --prefix client",
     "build": "npm run build --prefix client",
     "test": "node --test tests/*.test.js",
-    "auth:configure": "node scripts/configure-email-auth.mjs",
+    "auth:configure": "node scripts/configure-password-auth.mjs",
     "test:responsive": "node scripts/check-responsive.mjs",
     "format": "prettier --write . --ignore-unknown",
     "format:check": "prettier --check . --ignore-unknown"

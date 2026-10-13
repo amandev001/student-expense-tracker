@@ -3,7 +3,7 @@ import AdminPanel from './AdminPanel.jsx';
 import StudentAuth from './StudentAuth.jsx';
 import Logo from './Logo.jsx';
 import { useResponsiveOverlays } from './use-responsive-overlays.js';
-import { requiresPasswordSetup } from './student-session.js';
+import { isIncompleteLegacyRegistration } from './student-auth.js';
 import React, { useEffect, useState } from 'react';
 import {
   Wallet,
@@ -269,7 +269,7 @@ function App() {
   };
 
   function acceptStudentSession(session) {
-    if (requiresPasswordSetup(session)) {
+    if (isIncompleteLegacyRegistration(session)) {
       setToken('');
       setUser(null);
       setPendingRegistration(session);
