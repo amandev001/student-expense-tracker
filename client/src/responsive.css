@@ -1,0 +1,948 @@
+/* Shared layout rules, loaded after every screen's styles. */
+html {
+  scroll-padding-top: 100px;
+}
+body,
+#root {
+  min-width: 0;
+}
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+button,
+input,
+select,
+textarea {
+  max-width: 100%;
+  min-width: 0;
+}
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--primary, #6251cc);
+  outline-offset: 3px;
+}
+.app,
+.adminApp,
+.studentAuth,
+.adminLoginPage {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+.main,
+.mainBody,
+.panel,
+.metric,
+.budgetTile,
+.adminBody,
+.adminColumns > *,
+.studentAuthCard,
+.studentAuthMain {
+  min-width: 0;
+}
+.doubleGrid {
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+}
+.twoSection,
+.formGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.budgetGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.resultStats,
+.profileStatsGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.sectionHead {
+  flex-wrap: wrap;
+}
+.sectionHead > div {
+  min-width: 0;
+  flex: 1 1 160px;
+}
+.sectionHead h3,
+.sectionHead p,
+.error,
+.success,
+.studentAuthNotice,
+.studentAuthDescription,
+.studentHeroPill {
+  overflow-wrap: anywhere;
+}
+.sectionHead > svg,
+.iconBg,
+.alert > svg,
+.insightStrip > svg,
+.activeCycleBanner > svg {
+  flex-shrink: 0;
+}
+.metricHead > span:first-child,
+.insightStrip > div,
+.alert > span,
+.activeCycleBanner > span,
+.budgetAlertRow > div,
+.welcomeContent {
+  min-width: 0;
+}
+.metric > strong,
+.budgetTile > strong,
+.miniStat strong,
+.profileStatCard strong {
+  overflow-wrap: anywhere;
+}
+.metric > strong {
+  font-size: clamp(22px, 2.2vw, 32px);
+}
+.metricHead {
+  gap: 10px;
+}
+.metricHead .iconBg {
+  flex-shrink: 0;
+}
+.compactPeriodStrip,
+.heroPeriodBadge,
+.activeCycleBadge,
+.progressLabels,
+.sampleNote,
+.profileActionsRow {
+  flex-wrap: wrap;
+}
+.heroPeriodBadge,
+.periodActive,
+.activeCycleBadge,
+.lockNotice {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.heroPeriodBadge > span {
+  min-width: 0;
+}
+.heroPeriodBadge > svg {
+  flex-shrink: 0;
+}
+.miniStat {
+  gap: 12px;
+}
+.miniStat strong {
+  text-align: right;
+  min-width: 0;
+}
+.filterBar label {
+  flex-direction: row;
+  min-width: min(180px, 100%);
+}
+.filterBar label input {
+  min-width: 0;
+  margin: 0;
+  box-shadow: none;
+}
+.filterBar label svg {
+  flex-shrink: 0;
+}
+.filterBar select {
+  max-width: 100%;
+}
+.tableWrap {
+  min-width: 0;
+  max-width: 100%;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.expenseTable td:nth-child(2) {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  max-width: 360px;
+}
+.expenseTable th:last-child {
+  text-align: right;
+}
+.expenseTable td:last-child {
+  text-align: right;
+}
+.invalids table {
+  min-width: 480px;
+}
+.invalids td:not(:first-child) {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.invalids code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.importPanel form {
+  min-width: 0;
+}
+.importPanel form input[type='file'] {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+.importPanel > p code {
+  overflow-wrap: anywhere;
+}
+.sampleNote > div {
+  min-width: 0;
+  flex: 1 1 180px;
+}
+.empty {
+  padding: clamp(20px, 4vw, 48px);
+}
+.chart {
+  min-width: 0;
+}
+.chartCenter {
+  max-width: 126px;
+}
+.chartCenter strong {
+  display: block;
+  font-size: clamp(13px, 1.4vw, 18px);
+  overflow-wrap: anywhere;
+}
+.sidebar {
+  height: 100vh;
+  height: 100dvh;
+}
+.sidebarTop {
+  gap: 10px;
+}
+.sidebarTop .brand {
+  min-width: 0;
+  margin-bottom: 0;
+  padding-left: 0;
+}
+.tourOverlay {
+  padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+    max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.tourCard {
+  min-width: 0;
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.tourTop > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.tourTop > button {
+  flex-shrink: 0;
+}
+.tourActions,
+.tourActions > div {
+  flex-wrap: wrap;
+}
+.tourActions > div {
+  min-width: 0;
+  margin-left: auto;
+}
+.budgetAlertRow {
+  align-items: flex-start;
+}
+.budgetAlertRow > span {
+  flex-shrink: 0;
+}
+.profileModalInfo h3,
+.profileModalInfo p {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.adminHeaderActions,
+.adminBrand {
+  min-width: 0;
+}
+.adminHeaderActions {
+  flex-wrap: wrap;
+}
+.adminApp .subtleBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 700;
+}
+.adminApp .subtleBtn:hover:not(:disabled) {
+  background: var(--primary-subtle);
+  border-color: var(--primary-border);
+}
+.adminHeaderActions > span {
+  overflow-wrap: anywhere;
+}
+.adminUsers .sectionHead h3 {
+  align-items: flex-start;
+}
+.adminColumns {
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+}
+.adminUserDetails,
+.adminBudgets .sectionHead p {
+  overflow-wrap: anywhere;
+}
+.studentAuth {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.studentAuthHero {
+  min-width: 0;
+}
+.studentAuthHero .brand strong,
+.studentHeroBody h1,
+.studentHeroSteps strong {
+  color: #fff;
+}
+.studentHeroBody,
+.studentHeroSteps > span > div,
+.studentPasswordNext > span {
+  min-width: 0;
+}
+.studentAuthMain {
+  padding-bottom: max(32px, env(safe-area-inset-bottom));
+}
+.studentVerifiedEmail {
+  flex-wrap: wrap;
+}
+.studentVerifiedEmail > span {
+  flex-basis: 150px;
+}
+.studentCodeActions {
+  flex-wrap: wrap;
+}
+.studentSignupSteps li {
+  min-width: 0;
+}
+.adminLoginPage {
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
+}
+@media (min-width: 1025px) {
+  .sideOverlay,
+  .sideOverlayVisible {
+    display: none;
+  }
+  .sidebar {
+    visibility: visible;
+    transform: none;
+    pointer-events: auto;
+  }
+}
+@media (max-width: 1200px) {
+  .adminColumns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .adminBudgetForms {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+  .budgetGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .doubleGrid,
+  .twoSection {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 1024px) {
+  .hamburgerBtn,
+  .sideCloseBtn {
+    display: inline-flex !important;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .sidebar {
+    position: fixed !important;
+    inset: 0 auto 0 0;
+    width: min(300px, calc(100vw - 48px));
+    height: 100vh !important;
+    height: 100dvh !important;
+    z-index: 100;
+    transform: translateX(-100%);
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      transform 0.22s ease,
+      visibility 0.22s ease;
+    padding-top: max(24px, env(safe-area-inset-top));
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
+    overscroll-behavior: contain;
+  }
+  .sidebar.sidebarOpen {
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(0);
+    box-shadow: 4px 0 32px #0f172a2e;
+  }
+  .sideOverlayVisible {
+    display: block;
+  }
+  .topbar {
+    gap: 16px;
+    padding: 16px 24px;
+  }
+  .topbarLeft {
+    min-width: 0;
+  }
+  .headActions {
+    min-width: 0;
+  }
+  .topbarBtn span {
+    display: none;
+  }
+  .topbarBtn {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+    padding: 10px;
+  }
+  .mainBody {
+    padding: 24px;
+  }
+  .metricGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .metric {
+    padding: 18px;
+  }
+  .metricHead {
+    align-items: flex-start;
+  }
+  .avatar {
+    display: grid;
+    flex-shrink: 0;
+    border: 2px solid #e0e7ff;
+  }
+  .welcome {
+    padding: 26px;
+  }
+  .welcomeActions {
+    flex-shrink: 0;
+  }
+  footer {
+    padding: 20px 24px;
+  }
+}
+@media (max-width: 850px) {
+  .studentAuth {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .studentAuthMain {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+  .studentAuthHero {
+    display: none;
+  }
+  .studentMobileBrand {
+    display: block;
+  }
+}
+@media (max-width: 640px) {
+  .topbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 44px 44px;
+    padding: 12px 16px;
+    gap: 10px 8px;
+  }
+  .topbarLeft {
+    width: auto;
+    grid-row: 1;
+    grid-column: 1/3;
+  }
+  .topbarLeft > div {
+    min-width: 0;
+  }
+  .topbar h1 {
+    font-size: 20px;
+    overflow-wrap: anywhere;
+  }
+  .headActions {
+    display: contents;
+  }
+  .headActions .topbarBtn:nth-of-type(1) {
+    grid-row: 2;
+    grid-column: 2;
+  }
+  .headActions .topbarBtn:nth-of-type(2) {
+    grid-row: 2;
+    grid-column: 3;
+  }
+  .headActions label.monthPicker {
+    grid-row: 2;
+    grid-column: 1;
+    margin-right: 0 !important;
+    padding: 0 10px !important;
+    height: 44px !important;
+    min-width: 0;
+    width: 100%;
+  }
+  .headActions label.monthPicker > svg {
+    display: none;
+  }
+  .headActions label.monthPicker input {
+    width: 100% !important;
+    min-width: 0;
+    font-size: 16px !important;
+  }
+  .headActions .avatar {
+    grid-row: 1;
+    grid-column: 3;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    padding: 0;
+  }
+  .mainBody {
+    padding: 16px 12px 28px;
+  }
+  .metricGrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .metric > strong {
+    font-size: clamp(24px, 7vw, 32px);
+  }
+  .metricHead {
+    align-items: center;
+  }
+  .panel {
+    padding: 18px 16px;
+  }
+  .welcome {
+    padding: 22px 18px;
+    gap: 18px;
+  }
+  .welcomeContent,
+  .welcomeActions {
+    width: 100%;
+  }
+  .welcome h2 {
+    font-size: 22px;
+  }
+  .welcome .whiteBtn {
+    width: 100%;
+    justify-content: center;
+    white-space: normal;
+  }
+  .budgetGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .budgetTile {
+    padding: 16px 12px;
+  }
+  .budgetTile > strong {
+    font-size: 20px;
+  }
+  .compactPeriodStrip {
+    gap: 8px;
+    padding: 12px;
+  }
+  .activeCycleBadge {
+    margin-left: 0;
+  }
+  .progressLabels {
+    gap: 8px;
+  }
+  .progressLabels > span:last-child {
+    flex: 1 1 160px;
+    text-align: right;
+  }
+  .filterBar label {
+    flex: 1 1 100%;
+  }
+  .filterBar select {
+    flex: 1 1 130px;
+    min-height: 44px;
+  }
+  .formGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .formGrid .span2 {
+    grid-column: auto;
+  }
+  label input,
+  label select,
+  .filterBar input,
+  .filterBar select {
+    font-size: 16px;
+    min-height: 44px;
+  }
+  .primary,
+  .subtleBtn,
+  .textBtn,
+  .deleteBtn,
+  .tileEditBtn,
+  .tileResetBtn,
+  .clearAllBtn,
+  .logoutBtnDanger,
+  .tourTop button {
+    min-height: 44px;
+  }
+  .deleteBtn,
+  .tileResetBtn {
+    min-width: 44px;
+  }
+  .tileResetBtn {
+    padding: 8px;
+  }
+  .primary {
+    justify-content: center;
+    align-items: center;
+    white-space: normal;
+  }
+  .primary svg {
+    flex-shrink: 0;
+  }
+  .miniStat {
+    flex-wrap: wrap;
+  }
+  .miniStat strong {
+    text-align: left;
+  }
+  .demoBanner {
+    padding: 12px;
+    gap: 8px;
+  }
+  .demoBanner > span {
+    flex: 1 1 calc(100% - 30px);
+  }
+  .demoBanner button {
+    min-height: 44px;
+  }
+  .importPanel form {
+    padding: 22px 12px;
+  }
+  .sampleNote {
+    padding: 14px;
+    align-items: flex-start;
+  }
+  .sampleNote > a {
+    flex-basis: 100%;
+    padding: 10px 0;
+    min-height: 44px;
+  }
+  .resultStats {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+  .resultStats > div {
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 14px;
+  }
+  .expenseTableWrap,
+  .adminUsersTableWrap {
+    overflow: visible;
+  }
+  .expenseTable,
+  .expenseTable tbody,
+  .adminUsers .adminUsersTable,
+  .adminUsers .adminUsersTable tbody {
+    display: block;
+    min-width: 0;
+    width: 100%;
+  }
+  .expenseTable thead,
+  .adminUsersTable thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .expenseTable tbody,
+  .adminUsersTable tbody {
+    display: grid;
+    gap: 12px;
+  }
+  .expenseTable tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #fafbff;
+  }
+  .expenseTable td,
+  .adminUsers .adminUsersTable td {
+    display: block;
+    min-width: 0;
+    width: auto !important;
+    max-width: none;
+    padding: 0;
+    border: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: left;
+  }
+  .expenseTable td::before,
+  .adminUsersTable td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 6px;
+    font-weight: 700;
+  }
+  .expenseTable td:nth-child(1) {
+    order: 0;
+  }
+  .expenseTable td:nth-child(4) {
+    order: 1;
+    text-align: right;
+  }
+  .expenseTable td:nth-child(2) {
+    order: 2;
+    grid-column: 1/-1;
+  }
+  .expenseTable td:nth-child(3) {
+    order: 3;
+  }
+  .expenseTable td:nth-child(5) {
+    order: 4;
+    text-align: right;
+  }
+  .expenseTable td:last-child::before {
+    display: none;
+  }
+  .expenseTable .categoryTag {
+    display: inline-block;
+  }
+  .adminUsersTable tr {
+    display: grid;
+    gap: 14px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #fafbff;
+  }
+  .adminUsersTable tr.adminSelected {
+    background: #f5f3ff;
+    border-color: var(--primary-border);
+  }
+  .adminUsersTable td:last-child::before {
+    display: none;
+  }
+  .adminUsersTable .subtleBtn {
+    width: 100%;
+    justify-content: center;
+  }
+  .adminBody {
+    padding: 18px 12px;
+  }
+  .adminHeader {
+    padding: 18px 16px;
+    gap: 16px;
+  }
+  .adminHeaderActions {
+    width: 100%;
+    gap: 8px;
+  }
+  .adminHeaderActions > span {
+    flex-basis: 100%;
+  }
+  .adminHeaderActions button {
+    flex: 1 1 120px;
+    justify-content: center;
+  }
+  .adminBudgetForms {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .adminBudgetForms form {
+    gap: 8px;
+  }
+  .adminPagination {
+    gap: 16px;
+  }
+  .adminPagination button {
+    min-width: 44px;
+    justify-content: center;
+  }
+  .adminLoginPage {
+    padding: 20px 16px;
+  }
+  .adminLoginCard {
+    padding: 24px 20px;
+  }
+  .adminLoginCard h1 {
+    font-size: clamp(22px, 6vw, 26px);
+  }
+  .tourCard {
+    padding: 22px 18px;
+  }
+  .tourActions {
+    align-items: stretch;
+    gap: 12px;
+  }
+  .tourActions > div {
+    flex: 1 1 100%;
+    justify-content: flex-end;
+  }
+  .tourActions .primary {
+    flex: 1;
+  }
+  .tourTop > span {
+    font-size: 10px;
+    letter-spacing: 0.6px;
+  }
+  .profileStatsGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .profileStatCard {
+    padding: 14px;
+  }
+  .profileActionsRow > button {
+    flex: 1 1 120px;
+    justify-content: center;
+  }
+  .budgetAlertRow {
+    padding: 12px 10px;
+    gap: 8px;
+  }
+  .budgetAlertRow strong,
+  .budgetAlertRow p {
+    overflow-wrap: anywhere;
+  }
+  .studentAuthMain {
+    padding: 24px 16px max(24px, env(safe-area-inset-bottom));
+  }
+  .studentAuthTabs button {
+    min-height: 44px;
+  }
+  .studentField input {
+    font-size: 16px;
+  }
+  .studentPassword button {
+    width: 44px;
+  }
+  .studentPassword input {
+    padding-right: 54px;
+  }
+  .studentCodeActions button,
+  .studentAdminEntry button,
+  .studentDemoEntry button {
+    min-height: 44px;
+  }
+  .studentVerifiedEmail {
+    padding: 12px;
+  }
+  .studentVerifiedEmail button {
+    min-height: 44px;
+  }
+  .studentVerifiedEmail > span {
+    flex-basis: 130px;
+  }
+  .studentAuthNotice {
+    overflow-wrap: anywhere;
+  }
+  .studentHeroPill {
+    line-height: 1.6;
+  }
+  footer {
+    padding: 20px 12px;
+  }
+}
+@media (max-width: 380px) {
+  .budgetGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .headActions .topbarBtn {
+    min-width: 44px;
+    width: 44px;
+    padding: 8px;
+  }
+  .headActions label.monthPicker {
+    padding: 0 8px !important;
+  }
+  .studentAuthTabs button {
+    font-size: 13px;
+    padding: 10px 6px;
+  }
+  .studentSignupSteps {
+    gap: 7px;
+  }
+  .studentSignupSteps li {
+    font-size: 11px;
+    gap: 5px;
+  }
+  .studentField input.studentOtpInput {
+    font-size: 24px;
+    letter-spacing: 0.3em;
+    padding-left: 20px;
+  }
+  .tourActions > div {
+    gap: 6px;
+  }
+  .tourActions > div > button {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  .adminBudgetForms form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .adminBudgetForms label {
+    width: 100%;
+  }
+}
+@media (max-height: 540px) and (orientation: landscape) {
+  .tourOverlay {
+    align-items: flex-start;
+  }
+  .studentAuthMain,
+  .adminLoginPage {
+    align-items: start;
+    padding-top: 20px;
+  }
+  .sidebarTop {
+    margin-bottom: 20px;
+  }
+  .sidebar nav {
+    gap: 4px;
+  }
+  .sidebar nav button {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

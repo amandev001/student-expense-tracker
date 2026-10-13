@@ -1,0 +1,25 @@
+{
+  "printWidth": 100,
+  "tabWidth": 2,
+  "useTabs": false,
+  "semi": true,
+  "singleQuote": true,
+  "trailingComma": "all",
+  "arrowParens": "always",
+  "endOfLine": "lf",
+  "singleAttributePerLine": true,
+  "plugins": ["prettier-plugin-sql-cst"],
+  "overrides": [
+    {
+      "files": "**/*.sql",
+      "options": {
+        "parser": "postgresql",
+        "sqlKeywordCase": "preserve",
+        "sqlLiteralCase": "preserve",
+        "sqlTypeCase": "preserve",
+        "sqlCanonicalSyntax": false,
+        "sqlExperimentalPlpgsql": true
+      }
+    }
+  ]
+}

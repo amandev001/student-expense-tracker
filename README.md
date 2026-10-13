@@ -1,72 +1,584 @@
-# pluscode Student Expense Tracker — Supabase Edition
+# Pluscode — Student Expense Tracker
 
-**Stack:** React 19 + Vite + Supabase Authentication + Supabase PostgreSQL; **no PHP, no MySQL, no Express or separate backend**.
+<p align="center">
+  <img src="client/public/pluscode-logo.jpeg" alt="Pluscode logo" width="96" height="96" />
+</p>
 
-## 1. Create your Supabase database
+A responsive expense tracker built with **React, Vite, and Supabase**. Students register with an email verification code, record expenses, set category budgets, view spending insights, and import/export CSV data. A separate administrator panel lists users and lets administrators update monthly category budgets.
 
-1. Create a project at https://supabase.com/dashboard.
-2. Open **SQL Editor** and run `supabase/schema.sql` in full.
-3. Open **Project Settings → API** (or Connect) and copy your Project URL and **publishable/anon key**, **NOT** `service_role` or secret key.
-4. In **Authentication → Providers → Email**, enable email/password sign-in. If email confirmation is enabled, confirm your email after registration before logging in. For local-only test accounts, you can optionally adjust confirmation settings in Supabase dashboard.
+This guide covers a fresh local installation on **Windows, macOS, or Linux**, including database setup, email delivery, administrator provisioning, and evaluation checks.
 
-## 2. Configure frontend (Mac)
+> **Evaluation data note:** Use a fresh Supabase project and test accounts. The current application contains a first-login reset: on a browser's first login for an email, it deletes that student's existing expenses and clears the selected month's category budgets. Clearing browser storage or using another browser can trigger this again. Read [Current implementation notes](#14-current-implementation-notes) before connecting an existing database.
+
+## Contents
+
+1. [Project overview](#1-project-overview)
+2. [Requirements](#2-requirements)
+3. [Get the project and install dependencies](#3-get-the-project-and-install-dependencies)
+4. [Quick demo without Supabase](#4-quick-demo-without-supabase)
+5. [Create the Supabase database](#5-create-the-supabase-database)
+6. [Configure the environment file](#6-configure-the-environment-file)
+7. [Configure six-digit verification emails](#7-configure-six-digit-verification-emails)
+8. [Set up the administrator panel](#8-set-up-the-administrator-panel)
+9. [Start, stop, and restart the application](#9-start-stop-and-restart-the-application)
+10. [Use the application](#10-use-the-application)
+11. [Examiner verification checklist](#11-examiner-verification-checklist)
+12. [Commands, tests, and production build](#12-commands-tests-and-production-build)
+13. [Project structure](#13-project-structure)
+14. [Current implementation notes](#14-current-implementation-notes)
+15. [Troubleshooting](#15-troubleshooting)
+16. [Submission checklist](#16-submission-checklist)
+
+## 1. Project overview
+
+### Main features
+
+- Email → six-digit verification code → password setup → email/password sign-in.
+- Student dashboard with spending totals, transactions, charts, category alerts, and a guided tour.
+- Expenses categorized as **Food, Travel, Study, or Other**.
+- Category budget limits, reporting periods, transaction search, and category filtering.
+- CSV import with row validation and duplicate-import prevention; CSV export.
+- Administrator login, user pagination/search, and monthly category budget updates.
+- Responsive student and administrator screens for phones, tablets, and desktops.
+- Interactive demo that does not write to Supabase.
+
+### Technology and architecture
+
+| Component        | Technology / purpose                                                |
+| ---------------- | ------------------------------------------------------------------- |
+| Frontend         | React 19 and Vite 6                                                 |
+| Authentication   | Supabase Auth for students; PostgreSQL functions for administrators |
+| Database         | Hosted Supabase PostgreSQL with Row Level Security (RLS)            |
+| Charts and icons | Recharts and Lucide React                                           |
+| CSV processing   | Papa Parse                                                          |
+| Automated checks | Node.js test runner, PGlite, and Playwright                         |
+| Formatting       | Prettier with PostgreSQL formatting support                         |
+
+The browser communicates directly with Supabase. **Only the frontend development server runs locally.** You do not need PHP, XAMPP, MySQL, Express, Docker, Supabase CLI, or a separate local PostgreSQL server for this guide.
+
+## 2. Requirements
+
+| Requirement      | Details                                                                                     |
+| ---------------- | ------------------------------------------------------------------------------------------- |
+| Node.js          | **Node.js 24 LTS recommended**; installed Supabase dependencies require Node.js 22 or newer |
+| npm              | Included with Node.js                                                                       |
+| Browser          | A current Chrome, Edge, Firefox, Safari, or Brave browser                                   |
+| Internet         | Required for package installation and real Supabase authentication/database access          |
+| Supabase account | Required for real registration, persistent data, and the admin panel                        |
+| Email inbox      | An inbox you control to receive the verification code                                       |
+| Custom SMTP      | Required for Pluscode-branded verification email delivery to ordinary users                 |
+| Git              | Optional; needed only if cloning instead of extracting the submitted ZIP                    |
+
+Install Node.js from the [official Node.js download page](https://nodejs.org/en/download), then reopen your terminal. Check:
 
 ```bash
-cd pluscode-student-expense-tracker-supabase
+node --version
+npm --version
+```
+
+An editor such as VS Code is useful but not required. Run all commands below from the **project root**, the folder containing the root `package.json`, `README.md`, `client/`, and `supabase/`, unless stated otherwise.
+
+## 3. Get the project and install dependencies
+
+### Option A: Use the submitted ZIP
+
+1. Extract the ZIP completely; do not run the application from inside the archive.
+2. Open the extracted project folder in VS Code or your terminal.
+3. Confirm that `package.json` and `client/package.json` are present.
+
+For example, on Windows PowerShell, if the extracted folder is `C:\Users\amank\Desktop\new`:
+
+```powershell
+Set-Location "C:\Users\amank\Desktop\new"
+```
+
+Replace that example with the folder on your own computer.
+
+### Option B: Clone the repository
+
+```bash
+git clone https://github.com/amandev001/student-expense-tracker.git
+cd student-expense-tracker
+```
+
+If the repository is private, the owner must grant you access. Otherwise, use the supplied ZIP. Use the latest submitted version containing the files in [Project structure](#13-project-structure).
+
+### Install both sets of dependencies
+
+```bash
+npm run install:all
+```
+
+This installs root development tools and frontend dependencies in `client/`. Wait until it completes successfully. Run it once after extracting/cloning, and again if package dependencies change.
+
+For a reproducible installation from a submission containing **both** lockfiles, you may instead use:
+
+```bash
+npm ci
+npm ci --prefix client
+```
+
+Use either installation method; running both is unnecessary. If Windows PowerShell blocks `npm.ps1`, use `npm.cmd` in place of `npm`, or use Command Prompt.
+
+## 4. Quick demo without Supabase
+
+After installing dependencies:
+
+```bash
+npm run dev
+```
+
+1. Open the **Local URL printed in the terminal**, normally `http://127.0.0.1:5173/`.
+2. The page may initially show **Create account**. Select the **Sign in** tab.
+3. Click **Try demo**.
+4. Explore the dashboard, transactions, budgets, and insights.
+
+No account, verification email, or environment file is required for demo mode. A missing-Supabase notice is expected without an environment file. Demo changes are held in memory and disappear on reload. **Reset demo** restores sample expenses and clears demo budgets. CSV import and real administrator access require the full setup below.
+
+## 5. Create the Supabase database
+
+If the owner supplies an already configured **evaluation** project, confirm its schema and email/admin setup are complete, then use its supplied frontend URL/key. Otherwise:
+
+1. Sign in at the [Supabase dashboard](https://supabase.com/dashboard).
+2. Create a new project and wait until it is ready. Keep its database password securely; it does **not** belong in `client/.env`.
+3. Open **SQL Editor → New query**.
+4. Open [supabase/schema.sql](supabase/schema.sql), copy the **entire file**, paste it into SQL Editor, and click **Run**.
+5. Confirm there are no SQL errors. In **Table Editor**, check that `public.expenses` and `public.budgets` exist.
+
+The schema creates tables, validation constraints, indexes, and RLS policies. Students access only records associated with their authenticated user ID. Leave RLS enabled.
+
+**Run SQL in Supabase SQL Editor, not in PowerShell, a browser address bar, or an npm terminal.** Run the base schema before the administrator schema.
+
+## 6. Configure the environment file
+
+### Copy the example file
+
+Windows PowerShell:
+
+```powershell
+Copy-Item client/.env.example client/.env
+```
+
+macOS / Linux:
+
+```bash
 cp client/.env.example client/.env
 ```
 
-Edit `client/.env` to include **your** project URL and publishable key:
+Do this only when creating a new environment file; copying over an existing file replaces its values.
 
-```
+### Fill in your project's values
+
+In Supabase, use the **Connect** dialog or **Project Settings → API / API Keys** to find the Project URL and its **publishable key** or legacy **anon key**. Dashboard labels may vary.
+
+Edit `client/.env`:
+
+```dotenv
 VITE_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
 VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_PUBLISHABLE_OR_ANON_KEY
 ```
 
-The publishable/anon key is designed to be used by browser apps; RLS prevents cross-user data access. **Never put a secret/service_role key in Vite env**.
+- Replace both placeholders with values from the **same Supabase project**.
+- Keep variable names exactly as shown, including `VITE_SUPABASE_ANON_KEY` when using a publishable key.
+- Save as **`client/.env`**, not a root `.env` or `.env.txt`.
+- Do not put a `service_role` key, secret key, database password, SMTP password, or management token here. Vite exposes `VITE_` variables to the browser.
+- Restart Vite whenever you change this file.
 
-## 3. Run
+The environment file is intentionally ignored by Git. A fresh checkout creates it separately. The publishable/anon key is intended for frontend use; database access is controlled by RLS.
+
+## 7. Configure six-digit verification emails
+
+Required for **real account creation**. Starting Vite or editing the local HTML template does not configure hosted Supabase email settings.
+
+### 7.1 Enable email registration and confirmation
+
+In Supabase **Authentication**, open the email provider settings, usually under **Sign In / Providers → Email**:
+
+1. Enable **Email** and allow new user sign-ups.
+2. Turn **Confirm email ON**.
+3. Set email OTP length to **6 digits**; locate it under email authentication settings if shown separately.
+4. Keep an appropriate OTP expiry. Use a newly requested code before it expires.
+
+### 7.2 Apply both email templates
+
+Open **Authentication → Email Templates**:
+
+| Template       | Subject                      | Body                                                            |
+| -------------- | ---------------------------- | --------------------------------------------------------------- |
+| Confirm signup | `Pluscode verification code` | Entire contents of `supabase/templates/email-verification.html` |
+| Magic Link     | `Pluscode verification code` | Entire contents of the same file                                |
+
+Copy the body from [email-verification.html](supabase/templates/email-verification.html) and **save both hosted templates**. Preserve `{{ .Token }}`: Supabase replaces it with the verification code. The supplied template displays a code without a login link. Configure both because new and existing/incomplete accounts can use different templates.
+
+Supabase's `signInWithOtp` sends a magic link by default unless the template displays the token; see the [official email OTP guide](https://supabase.com/docs/guides/auth/auth-email-passwordless).
+
+### 7.3 Configure delivery and the Pluscode sender
+
+Supabase's built-in email service restricts delivery to authorized project-team addresses. For an examiner's or another user's ordinary email address, configure **custom SMTP**. See [Supabase's SMTP documentation](https://supabase.com/docs/guides/auth/auth-smtp).
+
+1. Obtain SMTP details from an email provider and complete its required sender/domain verification.
+2. Open Supabase **Authentication → SMTP Settings** and enable custom SMTP.
+3. Enter the provider's SMTP host, port, username, and password.
+4. Use the provider's verified sender address and set **Sender name** to **Pluscode**.
+5. Save and request a code from the app to test actual delivery.
+
+SMTP credentials stay in Supabase settings. A sender name alone does not configure delivery. Check Inbox and Spam/Junk, and avoid repeated requests because Supabase/provider rate limits apply.
+
+### 7.4 Configure the local site URL
+
+Under **Authentication → URL Configuration**, set Site URL to the actual frontend origin, for example `http://127.0.0.1:5173`. If using redirects, allow the matching local redirect URL, for example `http://127.0.0.1:5173/**`. Update these for port `5174` or preview port `4173`.
+
+Current signup uses a typed code, but matching URL settings are useful for other Supabase auth emails. `localhost` and `127.0.0.1` are different origins; use the same address consistently.
+
+### 7.5 Optional: Configure templates using the provided script
+
+The dashboard method is sufficient. Alternatively, the owner can create a **personal management access token** in [Supabase account settings](https://supabase.com/dashboard/account/tokens) and run the script. An anon/publishable key cannot update auth settings.
+
+Windows PowerShell:
+
+```powershell
+$env:SUPABASE_ACCESS_TOKEN = "YOUR_SUPABASE_MANAGEMENT_ACCESS_TOKEN"
+npm run auth:configure
+Remove-Item Env:SUPABASE_ACCESS_TOKEN
+```
+
+macOS / Linux:
 
 ```bash
-npm run install:all
+export SUPABASE_ACCESS_TOKEN='YOUR_SUPABASE_MANAGEMENT_ACCESS_TOKEN'
+npm run auth:configure
+unset SUPABASE_ACCESS_TOKEN
+```
+
+The script derives the project reference from `client/.env`; `SUPABASE_PROJECT_REF` can override it. It enables confirmation, sets six-digit OTPs, updates both templates/subjects and sender name, then reads settings back. **It does not provision SMTP or send a test email.** Existing SMTP host, credentials, and sender address are preserved.
+
+| Exit code | Meaning                                                                           |
+| --------- | --------------------------------------------------------------------------------- |
+| `0`       | Settings verified and SMTP host/sender address present; still test delivery       |
+| `2`       | Templates/settings applied, but custom SMTP still needs configuration             |
+| `1`       | Configuration failed; read the terminal message for token, project, or API errors |
+
+Keep management tokens out of source files and `VITE_` variables.
+
+## 8. Set up the administrator panel
+
+The admin panel is separate from student registration. A student account does not automatically become an administrator. Complete this section if admin features are part of the evaluation.
+
+### 8.1 Install administrator functions
+
+After running the base schema, copy the entire [supabase/admin-schema.sql](supabase/admin-schema.sql) into Supabase SQL Editor and run it. This creates private `pluscode_admin` storage and public administrator RPC functions. Keep the private schema private; it does not need to be exposed through API settings.
+
+### 8.2 Create an administrator account
+
+In a new SQL Editor query, replace `YOUR_ADMIN_USERNAME` and `YOUR_ADMIN_PASSWORD` below with credentials you choose, then run the whole block. Use a unique username and a strong password of at least eight characters, within bcrypt's **72-byte** limit. Escape a single quote in a value as two single quotes inside the SQL string.
+
+```sql
+DO $setup$
+DECLARE
+  crypto_schema text;
+BEGIN
+  SELECT n.nspname INTO crypto_schema
+  FROM pg_catalog.pg_extension e
+  JOIN pg_catalog.pg_namespace n ON n.oid = e.extnamespace
+  WHERE e.extname = 'pgcrypto';
+
+  IF crypto_schema IS NULL THEN
+    RAISE EXCEPTION 'Run schema.sql and admin-schema.sql first';
+  END IF;
+
+  EXECUTE format(
+    'INSERT INTO pluscode_admin.accounts (username, password_hash)
+     VALUES ($1, %I.crypt($2, %I.gen_salt(''bf'', 12)))',
+    crypto_schema, crypto_schema
+  ) USING 'YOUR_ADMIN_USERNAME', 'YOUR_ADMIN_PASSWORD';
+END;
+$setup$;
+```
+
+This detects the actual `pgcrypto` schema, so it works with the extension in `extensions` or `public`. It stores a password hash. Run account creation once; a duplicate-username error means that account already exists.
+
+No usable default admin password is distributed in the repository. Obtain existing evaluation credentials privately from the owner, or create your own as above. A developer may have `supabase/admin-setup.local.sql` for local provisioning; **it is ignored by Git and is not required or included in a fresh checkout**.
+
+### 8.3 Sign in and update a student's budget
+
+1. Start the frontend and click **Administrator login**, or open `http://127.0.0.1:5173/#admin` using your actual port.
+2. Enter the administrator username/password created in SQL Editor.
+3. Search by student username, name, or email. New students use their email as username.
+4. Click **Budgets** for a student, choose the month, and save a category limit.
+5. Refresh the student's dashboard for the same month to see the updated limit.
+
+Admin sessions expire after **eight hours**. Sign-out revokes the session. **Five failed attempts** lock the account for **15 minutes**. Budget changes are recorded in a private audit table; student RLS remains enabled.
+
+## 9. Start, stop, and restart the application
+
+From the project root:
+
+```bash
 npm run dev
 ```
 
-Visit **http://127.0.0.1:5173/** and create an account. Only the React development server runs locally. Supabase requires an internet connection.
+Leave the terminal running. Open the Local URL printed by Vite, normally:
 
-Build: `npm run build`. Tests: `npm test`.
+```text
+Student application: http://127.0.0.1:5173/
+Administrator panel: http://127.0.0.1:5173/#admin
+```
 
-## New professional onboarding and demo (v3)
+The configured port is strict: Vite reports an error if `5173` is busy. To choose another:
 
-- **5-step guided onboarding tour** opens automatically on first sign-in on each browser and can be replayed with **Guided tour**. The tour explains the dashboard, recording expenses, monthly limits, insights and CSV import.
-- On the login page, choose **Try interactive demo** to explore without an account or Supabase credentials. Demo entries and budgets are held in memory only, never uploaded, and disappear on page reload. The demo intentionally disables CSV import; download sample CSV and sign in to test real importing.
-- **Smart spending insight** card highlights overspending, warnings, and top spending categories.
-- **Transaction search and category filtering** plus **Export month** CSV.
-- **Reset demo** restores the sample budgets and expenses.
-- Existing database schema remains unchanged, so existing Supabase customers do **not** need to rerun SQL.
+```bash
+npm run dev --prefix client -- --port 5174
+```
 
-## Features and verification
+Then use `http://127.0.0.1:5174/` and `http://127.0.0.1:5174/#admin`.
 
-- Expenses have amount, date, description and Food/Travel/Study/Other category.
-- Budget limits apply to the selected calendar month only.
-- At 80% (including exactly 80%), show warning. Over 100% (strictly greater than the limit), show over-budget warning.
-- Month-boundary filtering is executed against PostgreSQL, with a lower bound inclusive and next month exclusive.
-- CSV upload supports `date,amount,description,category` columns. Failed rows are shown with CSV row numbers. Valid rows are imported; importing again skips duplicates using a per-user database unique index.
-- `sample-data/expenses-sample.csv` or in-app **Download sample CSV** contains valid examples across two months and three invalid rows.
-- Supabase authentication and PostgreSQL RLS isolate each student's data by their authenticated user ID.
+- **Stop:** Press `Ctrl+C` in the server terminal.
+- **Restart:** Run the same dev command after stopping it.
+- **After changing `.env`:** Restart the server and reload the browser.
+- **On subsequent days:** Open the root folder and run the dev command; do not reinstall packages or recreate the database every time.
 
-### Test sequence
+## 10. Use the application
 
-1. Sign up and sign in.
-2. Add September and October expenses; switch month and confirm separate totals.
-3. Set October Food budget at ₹1000; add ₹800 in October Food => warning.
-4. Add ₹201 more => over budget.
-5. Import sample CSV => correction messages for missing date/amount/description; import again => duplicate rows skipped.
-6. Sign in to another account => first student's records should be inaccessible.
+### Create a student account
 
-### Notes
+1. Select **Create account** and enter an inbox you control.
+2. Request verification and enter the **latest six-digit code** from the email.
+3. After verification, choose a password, confirm it, and optionally enter your name.
+4. Complete registration, then sign in with that **same email and chosen password**.
 
-- **No credentials are bundled**. You must create a Supabase project and insert its URL and key.
-- This is a local-first development app connected to a remotely hosted Supabase database, not an offline database app.
-- Existing MySQL data is **not automatically migrated**. If you have old data, export it as CSV for import.
-- Supabase RLS is the security boundary; do not disable it.
+Email becomes the student's username. The password form appears **after successful verification**. Passwords need at least eight characters and must fit the 72-byte limit; stricter Supabase password policies also apply. Existing completed accounts retain their password. Reloading during registration may require a new code.
+
+### Record and review expenses
+
+Use **Add Expense** and supply a date, positive INR amount, description, and category. Only today's or past dates are allowed. Amounts allow up to two decimal places; descriptions allow up to 500 characters. Review **Transactions**, search/filter entries, or delete a test expense after confirming.
+
+### Set budgets and view alerts
+
+For a straightforward evaluation, select the **current month** and **Monthly** duration before setting budgets. Enter a positive limit for a category in **Budgets**. Limits apply to the selected month/category. The student UI locks a saved category budget during its active period; administrators can update monthly limits.
+
+| Spending against a category limit | Display                   |
+| --------------------------------- | ------------------------- |
+| Below 80%                         | Within budget             |
+| 80% through exactly 100%          | Budget warning            |
+| Greater than 100%                 | Over-budget alert         |
+| No limit configured               | No category-budget status |
+
+Past periods cannot receive new student budgets, and future periods must start before saving. Weekly, half-month, quarterly, and yearly selections affect reporting; see [implementation notes](#14-current-implementation-notes) for budget storage details.
+
+### Import and export CSV
+
+Import requires real student sign-in and a file **no larger than 2 MB** with these headers:
+
+```csv
+date,amount,description,category
+2026-10-01,150.00,Canteen lunch,Food
+2026-10-02,50.00,Bus fare,Travel
+```
+
+Use real `YYYY-MM-DD` dates that are not in the future and match the period you want to display. Allowed categories are Food, Travel, Study, and Other. Valid rows import; invalid rows show CSV line numbers and explanations. Repeated imported entries are skipped using a per-user fingerprint.
+
+Use [sample-data/expenses-sample.csv](sample-data/expenses-sample.csv) or **Download sample CSV** for testing. The sample has fixed September/October 2026 dates and deliberately invalid rows. Adjust valid dates for your evaluation date if needed; otherwise extra future-date errors or entries outside the current view are expected. Import the same valid file twice to check duplicate skipping.
+
+Use the transaction CSV export control to download the displayed data. Your browser saves downloads; they are not placed in the source folder.
+
+## 11. Examiner verification checklist
+
+Use fresh accounts and let the initial dashboard finish loading before adding data. Do not switch browsers or clear storage during this sequence because of the first-login reset.
+
+| Check            | Steps                                                       | Expected result                                               |
+| ---------------- | ----------------------------------------------------------- | ------------------------------------------------------------- |
+| Local launch     | Install dependencies and start Vite                         | Authentication page opens at the Local URL                    |
+| Demo             | Sign in tab → Try demo                                      | Dashboard works without a real account                        |
+| Registration     | Email → code → password → sign in                           | Code-only email arrives; password is requested; account opens |
+| Expense          | Add a Food expense dated today                              | Transaction, count, and total update                          |
+| Month filtering  | View another month with no entries                          | First month's entries do not appear                           |
+| Warning          | Current Monthly view: Food limit ₹1,000, Food spending ₹800 | 80% warning appears                                           |
+| Over budget      | Add ₹201 more Food spending in the same month               | ₹1,001 shows over-budget alert                                |
+| CSV validation   | Import valid and invalid rows                               | Valid rows import; invalid rows show explanations             |
+| Duplicates       | Import that same file again                                 | Matching imported rows are skipped                            |
+| Data isolation   | Sign in as a second student                                 | First student's records are not visible                       |
+| Admin search     | Admin login → search student email                          | Matching user appears                                         |
+| Admin update     | Revise monthly limit; refresh student's view                | Updated category limit appears                                |
+| Responsive UI    | Test phone/tablet/desktop sizes                             | Navigation, forms, tables, and dialogs remain usable          |
+| Automated checks | Run tests, formatting check, and build                      | Commands finish without failures                              |
+
+For the budget example, start with an empty Food total; existing sample/test expenses change the percentage.
+
+## 12. Commands, tests, and production build
+
+### Command reference
+
+| Command from project root                                         | Purpose                                                        |
+| ----------------------------------------------------------------- | -------------------------------------------------------------- |
+| `npm run install:all`                                             | Install root and client dependencies                           |
+| `npm run dev`                                                     | Start frontend on port 5173                                    |
+| `npm run dev --prefix client -- --port 5174`                      | Start on another port                                          |
+| `npm test`                                                        | Run automated logic/auth/database tests                        |
+| `npm run build`                                                   | Create production frontend in `client/dist/`                   |
+| `npm run preview --prefix client -- --host 127.0.0.1 --port 4173` | Serve the production build locally                             |
+| `npm run format`                                                  | Format supported source files                                  |
+| `npm run format:check`                                            | Check formatting without changes                               |
+| `npm run auth:configure`                                          | Update hosted email settings using a management token          |
+| `npm run test:responsive`                                         | Run isolated browser layout checks; needs a running dev server |
+
+### Standard verification
+
+```bash
+npm test
+npm run format:check
+npm run build
+```
+
+Tests cover expense/CSV validation, budget statuses, email registration/settings, and admin authentication, permissions, search/pagination, budget updates, lockout, and logout. Database tests use embedded **PGlite**, not live Supabase data. They do not prove SMTP delivery; test that separately in the app.
+
+### Preview the production build
+
+After `npm run build`:
+
+```bash
+npm run preview --prefix client -- --host 127.0.0.1 --port 4173
+```
+
+Open `http://127.0.0.1:4173/` or its `/#admin` page. Preview serves a local build; it does not publish the project. Environment values are embedded at build time, so rebuild after changing `client/.env`. Supabase still requires internet.
+
+### Optional responsive browser checks
+
+Checks use a separate headless browser with mocked auth/database responses, not your browser profile or live data. Configure a valid Supabase-shaped URL/key in `client/.env` so auth screens initialize; the normal evaluation environment is sufficient, and requests are intercepted by the test.
+
+On Windows the script looks for Chrome, Edge, or Brave in common installation locations. If none is found, or on macOS/Linux, install Chromium:
+
+```bash
+npx playwright install chromium
+```
+
+If Linux reports missing system dependencies, follow Playwright's suggested installation command (`npx playwright install --with-deps chromium`); OS package installation may require administrator rights.
+
+Start Vite in one terminal. In a **second terminal** at the project root, set the check URL to its actual port:
+
+Windows PowerShell:
+
+```powershell
+$env:RESPONSIVE_TEST_URL = "http://127.0.0.1:5173/"
+npm run test:responsive
+Remove-Item Env:RESPONSIVE_TEST_URL
+```
+
+macOS / Linux:
+
+```bash
+RESPONSIVE_TEST_URL='http://127.0.0.1:5173/' npm run test:responsive
+```
+
+The script defaults to **5174**, so override it for 5173. Set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to a full browser executable path for custom installations. Reports/screenshots go into ignored `layout-artifacts/`. Checks cover 14 states across eight viewport configurations, including 320px phones and short landscape.
+
+### Editor formatting
+
+Source uses two-space indentation and Prettier. VS Code settings enable format-on-save; install the recommended **Prettier – Code formatter** extension (`esbenp.prettier-vscode`). Dependencies, generated builds/reports, environment files, and local SQL provisioning are excluded.
+
+## 13. Project structure
+
+```text
+student-expense-tracker/
+├── README.md                         # Setup, usage, evaluation, troubleshooting
+├── package.json                      # Root commands and development tools
+├── package-lock.json                 # Root dependency lockfile
+├── .gitignore                        # Excludes secrets and generated output
+├── .prettierrc.json                   # Formatting rules
+├── .vscode/                          # Editor settings
+├── client/
+│   ├── .env.example                  # Copy to .env and fill values
+│   ├── package.json                  # React/Vite dependencies and commands
+│   ├── package-lock.json             # Frontend dependency lockfile
+│   ├── index.html                    # Frontend entry page
+│   ├── vite.config.js                # Dev server configuration
+│   ├── public/pluscode-logo.jpeg     # Project logo and browser icon
+│   ├── public/sample-expenses.csv    # In-app sample download
+│   └── src/
+│       ├── main.jsx                  # React entry and stylesheet imports
+│       ├── App.jsx                   # Student workspace, expenses, budgets
+│       ├── Logo.jsx                  # Shared project branding
+│       ├── StudentAuth.jsx           # Registration and sign-in
+│       ├── email-registration.js     # OTP verification and password setup
+│       ├── student-session.js        # Registration/session checks
+│       ├── api.js                    # Student Supabase access / validation
+│       ├── AdminPanel.jsx            # Administrator UI
+│       ├── admin-api.js              # Administrator RPC access
+│       ├── use-responsive-overlays.js
+│       └── *.css                     # Student, admin, responsive styles
+├── supabase/
+│   ├── schema.sql                    # Base tables, indexes, student RLS
+│   ├── admin-schema.sql              # Admin storage and RPC functions
+│   └── templates/email-verification.html
+├── sample-data/expenses-sample.csv    # CSV evaluation fixture
+├── scripts/
+│   ├── configure-email-auth.mjs      # Hosted email settings script
+│   └── check-responsive.mjs          # Isolated browser layout checks
+└── tests/                            # Node.js / embedded database tests
+```
+
+`client/.env`, `supabase/*.local.sql`, `node_modules/`, `client/dist/`, and `layout-artifacts/` are local or generated files, not required submission source files.
+
+## 14. Current implementation notes
+
+- **First-login reset:** `App.jsx` clears origin-local storage on first initialization and signs out any existing student session. On first signed-in use of an email without its local reset marker, it deletes that student's expenses across all months and clears the selected month's budgets. This is browser-dependent, not a database migration. Use disposable evaluation data; do not connect valuable existing records to this version.
+- **Budget persistence:** There is one budget per **user + calendar month + category**. Weekly, half-month, quarterly, and yearly selections filter expenses but do not store independent budgets for each cycle. Use Monthly for a consistent persisted-budget demonstration.
+- **Cycle locking:** Active-cycle state is stored in browser storage and cleared on logout. Student restrictions are UI logic, not a database-wide once-per-cycle policy. Admins can update monthly limits directly.
+- **Internet:** Real auth/data are hosted on Supabase. Demo data is temporary and cannot demonstrate real SMTP, RLS, or administrator access.
+- **Separate credentials:** Frontend settings and admin credentials are not bundled. SQL does not configure email delivery. Existing MySQL data is not automatically migrated.
+- **Incomplete registration:** Requesting a code can create an incomplete Auth user. Finish verification and password setup before student login; restarting registration can resume an incomplete account.
+
+## 15. Troubleshooting
+
+| Problem                                      | What to check / do                                                                                           |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `node` / `npm` not recognized                | Install Node.js 24 LTS, reopen terminal, and check versions                                                  |
+| `npm.ps1 cannot be loaded`                   | Use `npm.cmd` instead of `npm`, or Command Prompt                                                            |
+| `ENOENT` / package.json not found            | Open the project root, not its parent or `supabase/`                                                         |
+| Engine warning or install failure            | Upgrade to Node.js 24 LTS; installed Supabase package requires Node.js 22+                                   |
+| `vite` not recognized / missing dependencies | Run `npm run install:all` from root and wait for completion                                                  |
+| Port `5173` already in use                   | Use the `--port 5174` command and open that port                                                             |
+| Cannot reach local URL                       | Keep Vite running; open exactly its terminal's Local URL                                                     |
+| Missing Supabase settings                    | Create `client/.env`, fill values, check it is not `.env.txt`, restart Vite                                  |
+| Invalid API key / failed request             | Check URL/key belong to the same active project and internet works                                           |
+| Missing expenses/budgets relation            | Run all of `supabase/schema.sql` in the configured project                                                   |
+| RLS / permission errors                      | Verify schema/policies and session; keep RLS enabled; never use browser service-role keys                    |
+| No verification email                        | Check SMTP credentials, verified sender, Spam, Auth logs, and rate limits; default mail restricts recipients |
+| Login link / “Your Magic Link” email         | Save code template and subject in **both** hosted templates; editing local HTML is insufficient              |
+| Sender says Supabase Auth                    | Configure custom SMTP, verified sender address, and Sender name `Pluscode`                                   |
+| Wrong OTP length                             | Set email OTP length to six and request a new code                                                           |
+| Invalid / expired OTP                        | Use latest code for same email; wait for resend timer before a new request                                   |
+| Password form missing                        | Verify the code first; ensure Confirm email is ON and verification succeeds                                  |
+| Email/password login fails                   | Complete registration; use verified email and chosen password; check Auth logs                               |
+| Admin setup pending / RPC missing            | Run base schema then all of `admin-schema.sql` in the same project as `.env`                                 |
+| Admin credentials rejected                   | Provision an admin account; student credentials do not grant admin access                                    |
+| Duplicate admin username                     | Account already exists; use known credentials or another new username                                        |
+| `crypt` / `gen_salt` missing                 | Run schemas first; use the schema-detecting creation block in this guide                                     |
+| Admin account locked                         | Wait 15 minutes after repeated failures and use correct credentials                                          |
+| Admin users empty                            | Complete real registration in the same project; demo users are not stored                                    |
+| Expense not displayed                        | Check month/cycle/search/category filters; entry may be outside the view                                     |
+| Budget input locked                          | Select a current started period; saved categories lock during that period; admins can revise monthly limits  |
+| CSV / rows rejected                          | Check four headers, size, non-future real dates, amounts, descriptions, and categories                       |
+| Existing data disappears on new browser      | Read first-login reset note; this behavior exists in the current code                                        |
+| Responsive test cannot connect               | Run Vite and set `RESPONSIVE_TEST_URL` to its actual port                                                    |
+| Playwright executable missing                | Install Chromium or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE`                                                     |
+| Preview has old settings                     | Rebuild after environment/source changes, then restart preview                                               |
+
+For database/email errors, inspect browser console/network responses and Supabase logs. Do not include passwords or management tokens in shared screenshots or error reports.
+
+## 16. Submission checklist
+
+Before handing the project to the examiner:
+
+- [ ] Include **latest** source, README, both package manifests/lockfiles, both schemas, email template, scripts, tests, and sample CSV.
+- [ ] Grant private repository access or supply a complete source ZIP.
+- [ ] Verify installation from the actual submission folder, not an older copy.
+- [ ] Provide a fresh evaluation Supabase project or allow time to create one using this guide.
+- [ ] Apply database and administrator schemas if admin features will be evaluated.
+- [ ] Enable email confirmation, six-digit codes, both templates, and working custom SMTP.
+- [ ] Test real email → OTP → password → sign-in with the intended email delivery setup.
+- [ ] Share evaluation project URL/publishable key and existing admin credentials privately, or let the examiner create their own admin.
+- [ ] Run `npm test`, `npm run format:check`, and `npm run build`; complete manual evaluation checks.
+- [ ] Explain first-login reset and use disposable test records.
+- [ ] Exclude secrets, local provisioning SQL, dependency folders, builds, and generated reports from public source submissions.
+
+After successful setup, normal local use is: open project root → `npm run dev` → open the terminal's Local URL.

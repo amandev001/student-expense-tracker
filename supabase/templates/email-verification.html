@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Pluscode verification code</title>
+  </head>
+  <body style="margin: 0; background: #f5f4fb; font-family: Arial, sans-serif; color: #27324a">
+    <table
+      role="presentation"
+      style="width: 100%; border-collapse: collapse"
+    >
+      <tr>
+        <td style="padding: 36px 18px">
+          <table
+            role="presentation"
+            style="
+              width: 100%;
+              max-width: 480px;
+              margin: 0 auto;
+              border-collapse: collapse;
+              background: #fff;
+              border-radius: 16px;
+            "
+          >
+            <tr>
+              <td style="padding: 32px">
+                <p style="margin: 0 0 26px; color: #6251cc; font-size: 23px; font-weight: bold">
+                  Pluscode
+                </p>
+                <h1 style="font-size: 24px; line-height: 1.3; margin: 0 0 14px">
+                  Verify your email
+                </h1>
+                <p style="font-size: 14px; line-height: 1.7; color: #748098">
+                  Enter this code on the pluscode registration page. After verification, you can
+                  choose your password.
+                </p>
+                <p
+                  style="
+                    padding: 20px;
+                    text-align: center;
+                    background: #f2efff;
+                    border-radius: 12px;
+                    font-size: 32px;
+                    letter-spacing: 8px;
+                    font-weight: bold;
+                    color: #6251cc;
+                  "
+                >
+                  {{ .Token }}
+                </p>
+                <p style="font-size: 13px; line-height: 1.7; color: #748098">
+                  Your verified email will be your sign-in username. Never share this code. If you
+                  did not request it, you can ignore this email.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

@@ -1,1 +1,20 @@
-{"name":"pluscode-expense-supabase-web","version":"2.0.0","private":true,"type":"module","scripts":{"dev":"vite --host 127.0.0.1","build":"vite build","preview":"vite preview"},"dependencies":{"@supabase/supabase-js":"^2.57.0","papaparse":"^5.5.3","vite":"^6.3.0","react":"^19.0.0","react-dom":"^19.0.0","lucide-react":"^0.468.0","recharts":"^2.15.0"}}
+{
+  "name": "pluscode-expense-supabase-web",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.0",
+    "papaparse": "^5.5.3",
+    "vite": "^6.3.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "lucide-react": "^0.468.0",
+    "recharts": "^2.15.0"
+  }
+}
